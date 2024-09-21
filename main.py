@@ -22,27 +22,33 @@ def main(contract_address, abi_file):
             try:
                 owner = nft_contract.functions.ownerOf(token_id).call()
                 if owner not in holders:
-                    holders[owner] = 0
-                holders[owner] += 1  
+                    holders[owner] = {
+                        "nft_count": 0,
+                        "balance": 0
+                    }
+                holders[owner]["nft_count"] += 1  
             except Exception as e:
                 print(f"Error for token ID {token_id}: {e}")
         return holders
 
     holders = get_all_holders(total_supply)
 
-    with open('holders.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Holder Address', 'NFT Count'])  
-        for holder, count in holders.items():
-            writer.writerow([holder, count])
+    for holder in holders:
+        try:
+            balance = nft_contract.functions.balanceOf(holder).call()
+            holders[holder]["balance"] = balance
+        except Exception as e:
+            print(f"Error getting balance for holder {holder}: {e}")
 
-    print("Export to file holders.csv.")
+    with open('holders_with_balance.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Holder Address', 'NFT Count', 'Balance'])  
+        for holder, data in holders.items():
+            writer.writerow([holder, data['nft_count'], data['balance']])
+
+    print("Export to file holders_with_balance.csv.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Scan NFT holders and export to CSV.')
+    parser = argparse.ArgumentParser(description='Scan NFT holders, get balances, and export to CSV.')
     parser.add_argument('contract_address', type=str, help='The address of the NFT contract')
-    parser.add_argument('abi_file', type=str, help='The path to the ABI JSON file')
-
-    args = parser.parse_args()
-
-    main(args.contract_address, args.abi_file)
+    parser.add_argument
