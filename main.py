@@ -14,8 +14,8 @@ def main(contract_address, abi_file):
 
     nft_contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
-    total_supply = 100
-
+    total_supply = nft_contract.functions.totalSupply().call()
+    
     def get_all_holders(total_supply):
         holders = {}
         for token_id in range(1, total_supply + 1):
