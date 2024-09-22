@@ -14,7 +14,7 @@ def main(contract_address, abi_file):
 
     nft_contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
-    total_supply = nft_contract.functions.totalSupply().call()
+    total_supply = 100
 
     def get_all_holders(total_supply):
         holders = {}
@@ -24,7 +24,6 @@ def main(contract_address, abi_file):
                 if owner not in holders:
                     holders[owner] = {
                         "nft_count": 0,
-                        "balance": 0
                     }
                 holders[owner]["nft_count"] += 1  
             except Exception as e:
@@ -32,23 +31,19 @@ def main(contract_address, abi_file):
         return holders
 
     holders = get_all_holders(total_supply)
-
-    for holder in holders:
-        try:
-            balance = nft_contract.functions.balanceOf(holder).call()
-            holders[holder]["balance"] = balance
-        except Exception as e:
-            print(f"Error getting balance for holder {holder}: {e}")
-
-    with open('holders_with_balance.csv', mode='w', newline='') as file:
+    with open('holders.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['Holder Address', 'NFT Count', 'Balance'])  
-        for holder, data in holders.items():
-            writer.writerow([holder, data['nft_count'], data['balance']])
+        writer.writerow(['Holder Address', 'NFT Count'])  
+        for holder, count in holders.items():
+            writer.writerow([holder, count])
 
-    print("Export to file holders_with_balance.csv.")
+    print("Export to file holders.csv.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Scan NFT holders, get balances, and export to CSV.')
+    parser = argparse.ArgumentParser(description='Scan NFT holders and export to CSV.')
     parser.add_argument('contract_address', type=str, help='The address of the NFT contract')
-    parser.add_argument
+    parser.add_argument('abi_file', type=str, help='The path to the ABI JSON file')
+
+    args = parser.parse_args()
+
+    main(args.contract_address, args.abi_file)
